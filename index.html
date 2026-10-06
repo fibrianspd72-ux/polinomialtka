@@ -1,0 +1,522 @@
+<!DOCTYPE html>
+<html lang="id">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Kuis Interaktif Polinomial Tingkat Lanjut</title>
+    <!-- Tailwind CSS CDN -->
+    <script src="https://cdn.tailwindcss.com"></script>
+    <!-- Font Awesome Icons -->
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    <!-- MathJax Configuration -->
+    <script>
+        window.MathJax = {
+            tex: {
+                inlineMath: [['$', '$'], ['\\(', '\\)']],
+                displayMath: [['$$', '$$'], ['\\[', '\\]']]
+            },
+            svg: {
+                fontCache: 'global'
+            }
+        };
+    </script>
+    <script id="MathJax-script" async src="https://cdn.jsdelivr.net/npm/mathjax@3/es5/tex-mml-chtml.js"></script>
+    <style>
+        @import url('https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@400;500;600;700;800&display=swap');
+        
+        body {
+            font-family: 'Plus Jakarta Sans', sans-serif;
+            background: linear-gradient(135deg, #0f172a 0%, #1e1b4b 50%, #0f172a 100%);
+            min-height: 100vh;
+            color: #f8fafc;
+        }
+
+        .glass-card {
+            background: rgba(30, 41, 59, 0.7);
+            backdrop-filter: blur(12px);
+            border: 1px solid rgba(255, 255, 255, 0.1);
+            box-shadow: 0 20px 40px rgba(0, 0, 0, 0.3);
+        }
+
+        .option-btn {
+            transition: all 0.25s cubic-bezier(0.4, 0, 0.2, 1);
+        }
+
+        .option-btn:hover:not(:disabled) {
+            transform: translateY(-2px);
+            box-shadow: 0 8px 20px rgba(99, 102, 241, 0.25);
+        }
+
+        .option-btn.selected-correct {
+            background-color: #059669 !important;
+            border-color: #34d399 !important;
+            color: #ffffff !important;
+        }
+
+        .option-btn.selected-incorrect {
+            background-color: #dc2626 !important;
+            border-color: #f87171 !important;
+            color: #ffffff !important;
+        }
+
+        .option-btn.show-correct {
+            background-color: #047857 !important;
+            border-color: #10b981 !important;
+            color: #ffffff !important;
+        }
+
+        .math-content {
+            font-size: 1.05rem;
+            line-height: 1.6;
+        }
+
+        /* Custom Scrollbar */
+        ::-webkit-scrollbar {
+            width: 8px;
+        }
+        ::-webkit-scrollbar-track {
+            background: #0f172a;
+        }
+        ::-webkit-scrollbar-thumb {
+            background: #334155;
+            border-radius: 4px;
+        }
+        ::-webkit-scrollbar-thumb:hover {
+            background: #475569;
+        }
+    </style>
+</head>
+<body class="flex flex-col min-h-screen justify-between p-3 md:p-6">
+
+    <header class="max-w-4xl w-full mx-auto mb-6">
+        <div class="glass-card rounded-2xl p-4 md:p-6 flex flex-col md:flex-row justify-between items-center gap-4">
+            <div class="flex items-center gap-3">
+                <div class="p-3 bg-indigo-600/30 border border-indigo-500/40 rounded-xl text-indigo-400">
+                    <i class="fa-solid me-1 fa-square-root-variable text-2xl"></i>
+                </div>
+                <div>
+                    <h1 class="text-xl md:text-2xl font-extrabold bg-clip-text text-transparent bg-gradient-to-r from-indigo-300 via-purple-300 to-pink-300">
+                        Kuis Polinomial Tingkat Lanjut
+                    </h1>
+                    <p class="text-xs md:text-sm text-slate-400">Matematika Lanjut & Kurikulum Merdeka</p>
+                </div>
+            </div>
+            
+            <div class="flex items-center gap-4 w-full md:w-auto justify-between md:justify-end">
+                <div class="text-right">
+                    <span class="text-xs text-slate-400 uppercase tracking-wider block">Skor Saat Ini</span>
+                    <span id="score-display" class="text-lg font-bold text-emerald-400">0 Poin</span>
+                </div>
+                <div class="h-8 w-px bg-slate-700"></div>
+                <div class="text-right">
+                    <span class="text-xs text-slate-400 uppercase tracking-wider block">Waktu</span>
+                    <span id="timer-display" class="text-lg font-mono font-bold text-amber-400">00:00</span>
+                </div>
+            </div>
+        </div>
+    </header>
+
+    <main class="max-w-4xl w-full mx-auto flex-grow">
+        <!-- Progress Bar Container -->
+        <div class="mb-6 glass-card p-4 rounded-2xl">
+            <div class="flex justify-between items-center mb-2 text-sm font-semibold text-slate-300">
+                <span>Pertanyaan <span id="current-q-num">1</span> dari <span id="total-q-num">10</span></span>
+                <span id="progress-percent" class="text-indigo-400">10%</span>
+            </div>
+            <div class="w-full bg-slate-800 rounded-full h-3 overflow-hidden p-0.5 border border-slate-700">
+                <div id="progress-bar" class="bg-gradient-to-r from-indigo-500 to-purple-500 h-full rounded-full transition-all duration-300" style="width: 10%;"></div>
+            </div>
+        </div>
+
+        <!-- Question Card -->
+        <div id="quiz-card" class="glass-card rounded-2xl p-5 md:p-8 mb-6 relative">
+            <div class="mb-6">
+                <span id="question-category" class="inline-block px-3 py-1 rounded-full text-xs font-semibold bg-indigo-500/20 text-indigo-300 border border-indigo-500/30 mb-3">
+                    Topik Polinomial
+                </span>
+                <div id="question-text" class="text-base md:text-lg font-medium text-slate-100 math-content leading-relaxed">
+                    Memuat pertanyaan...
+                </div>
+            </div>
+
+            <!-- Options Grid -->
+            <div id="options-container" class="grid grid-cols-1 md:grid-cols-2 gap-3 md:gap-4 mb-6">
+                <!-- Dynamic options generated by JS -->
+            </div>
+
+            <!-- Explanation Box (Hidden initially) -->
+            <div id="explanation-box" class="hidden mt-6 p-4 md:p-5 rounded-xl bg-slate-900/80 border border-slate-700/80 text-sm">
+                <div class="flex items-center gap-2 font-bold text-amber-400 mb-2">
+                    <i class="fa-solid fa-lightbulb"></i> Pembahasan Langkah Demi Langkah:
+                </div>
+                <div id="explanation-text" class="text-slate-300 math-content leading-relaxed">
+                    <!-- Dynamic explanation -->
+                </div>
+            </div>
+        </div>
+
+        <!-- Navigation Buttons -->
+        <div class="flex justify-between items-center mb-8">
+            <button id="prev-btn" onclick="navigateQuestion(-1)" class="px-5 py-2.5 rounded-xl bg-slate-800 hover:bg-slate-700 border border-slate-700 text-slate-300 font-semibold text-sm transition disabled:opacity-40 disabled:cursor-not-allowed flex items-center gap-2" disabled>
+                <i class="fa-solid fa-arrow-left"></i> Sebelum
+            </button>
+            
+            <button id="next-btn" onclick="navigateQuestion(1)" class="px-6 py-2.5 rounded-xl bg-indigo-600 hover:bg-indigo-500 text-white font-semibold text-sm shadow-lg shadow-indigo-600/30 transition flex items-center gap-2">
+                Berikutnya <i class="fa-solid fa-arrow-right"></i>
+            </button>
+        </div>
+    </main>
+
+    <!-- Results Modal -->
+    <div id="results-modal" class="fixed inset-0 bg-slate-950/80 backdrop-blur-md flex items-center justify-center p-4 z-50 hidden">
+        <div class="glass-card max-w-lg w-full rounded-2xl p-6 md:p-8 text-center border border-slate-700 shadow-2xl">
+            <div class="w-20 h-20 bg-indigo-500/20 text-indigo-400 rounded-full flex items-center justify-center mx-auto mb-4 border border-indigo-500/30">
+                <i class="fa-solid fa-trophy text-4xl"></i>
+            </div>
+            
+            <h2 class="text-2xl font-bold text-white mb-2">Kuis Selesai!</h2>
+            <p class="text-slate-400 text-sm mb-6">Berikut adalah ringkasan hasil latihan polinomial Anda:</p>
+
+            <div class="grid grid-cols-3 gap-3 mb-6">
+                <div class="bg-slate-800/80 p-3 rounded-xl border border-slate-700">
+                    <span class="text-xs text-slate-400 block">Skor Akhir</span>
+                    <span id="final-score" class="text-xl font-bold text-emerald-400">0</span>
+                </div>
+                <div class="bg-slate-800/80 p-3 rounded-xl border border-slate-700">
+                    <span class="text-xs text-slate-400 block">Benar</span>
+                    <span id="final-correct" class="text-xl font-bold text-indigo-400">0/10</span>
+                </div>
+                <div class="bg-slate-800/80 p-3 rounded-xl border border-slate-700">
+                    <span class="text-xs text-slate-400 block">Waktu</span>
+                    <span id="final-time" class="text-xl font-bold text-amber-400">00:00</span>
+                </div>
+            </div>
+
+            <div class="flex gap-3">
+                <button onclick="restartQuiz()" class="flex-1 py-3 bg-indigo-600 hover:bg-indigo-500 text-white font-semibold rounded-xl shadow-lg transition">
+                    <i class="fa-solid fa-rotate-right mr-1"></i> Ulangi Kuis
+                </button>
+                <button onclick="closeModal()" class="px-5 py-3 bg-slate-800 hover:bg-slate-700 text-slate-300 font-semibold rounded-xl border border-slate-700 transition">
+                    Tinjau Soal
+                </button>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        // Quiz Data Set derived from given mathematical polynomial problems
+        const quizData = [
+            {
+                category: "Aplikasi Polinomial - Volume Tangki",
+                question: "Sebuah tangki air berbentuk balok tanpa tutup memiliki panjang $(x + 4)\\text{ m}$, lebar $(x - 2)\\text{ m}$, dan tinggi $(x - 1)\\text{ m}$. Manakah polinomial $V(x)$ yang menyatakan volume tangki air tersebut?",
+                options: [
+                    "$V(x) = x^3 + x^2 - 10x + 8$",
+                    "$V(x) = x^3 - x^2 - 10x + 8$",
+                    "$V(x) = x^3 + 3x^2 - 6x - 8$",
+                    "$V(x) = x^3 + x^2 + 10x - 8$"
+                ],
+                correct: 0,
+                explanation: "Volume balok $V(x) = p \\cdot l \\cdot t = (x + 4)(x - 2)(x - 1)$.<br>Kalikan dua suku pertama: $(x + 4)(x - 2) = x^2 + 2x - 8$.<br>Kalikan dengan $(x - 1)$: $(x^2 + 2x - 8)(x - 1) = x^3 - x^2 + 2x^2 - 2x - 8x + 8 = x^3 + x^2 - 10x + 8$."
+            },
+            {
+                category: "Aplikasi Polinomial - Syarat Batas Fisis",
+                question: "Pada rancangan tangki air berbentuk balok dengan panjang $(x + 4)\\text{ m}$, lebar $(x - 2)\\text{ m}$, dan tinggi $(x - 1)\\text{ m}$, syarat batas nilai $x$ agar ukuran fisik tangki bernilai positif adalah ....",
+                options: [
+                    "$x > -4$",
+                    "$x > 1$",
+                    "$x > 2$",
+                    "$x > 0$"
+                ],
+                correct: 2,
+                explanation: "Agar ukuran panjang, lebar, dan tinggi bernilai positif ($>0$):<br>1) $x + 4 > 0 \\implies x > -4$<br>2) $x - 2 > 0 \\implies x > 2$<br>3) $x - 1 > 0 \\implies x > 1$<br>Irisan dari ketiga syarat tersebut adalah $x > 2$."
+            },
+            {
+                category: "Teorema Faktor - Kelengkungan Jembatan",
+                question: "Model kelengkungan jembatan dinyatakan oleh $f(x) = x^4 - 2x^3 - 13x^2 + 14x + 24$. Jika $(x - 2)$ adalah salah satu faktor linear dari $f(x)$, manakah di antara pilihan berikut yang juga merupakan faktor linear dari $f(x)$?",
+                options: [
+                    "$(x - 5)$",
+                    "$(x - 6)$",
+                    "$(x + 5)$",
+                    "$(x + 1)$"
+                ],
+                correct: 3,
+                explanation: "Uji nilai $x = -1$ pada $f(x)$:<br>$f(-1) = (-1)^4 - 2(-1)^3 - 13(-1)^2 + 14(-1) + 24 = 1 + 2 - 13 - 14 + 24 = 0$.<br>Karena $f(-1) = 0$, maka $(x + 1)$ adalah faktor linear dari $f(x)$."
+            },
+            {
+                category: "Teorema Sisa - Kelengkungan Jembatan",
+                question: "Sisa pembagian fungsi polinomial $f(x) = x^4 - 2x^3 - 13x^2 + 14x + 24$ oleh $(x + 3)$ adalah ....",
+                options: [
+                    "$-10$",
+                    "$-5$",
+                    "$0$",
+                    "$10$"
+                ],
+                correct: 2,
+                explanation: "Berdasarkan Teorema Sisa, sisa pembagian $f(x)$ oleh $(x + 3)$ adalah $f(-3)$.<br>$f(-3) = (-3)^4 - 2(-3)^3 - 13(-3)^2 + 14(-3) + 24$<br>$= 81 + 54 - 117 - 42 + 24 = 0$."
+            },
+            {
+                category: "Pembagian Polinomial - Proyeksi Keuntungan",
+                question: "Diketahui fungsi proyeksi keuntungan $K(x) = 3x^3 - 2x^2 - 19x + 6$. Hasil bagi dari $K(x)$ oleh $(x + 3)$ adalah ....",
+                options: [
+                    "$3x^2 - 7x + 2$",
+                    "$3x^2 + 7x - 2$",
+                    "$3x^2 - 11x + 14$",
+                    "$3x^2 + 11x + 14$"
+                ],
+                correct: 2,
+                explanation: "Gunakan Pembagian Horner dengan pembagi $x = -3$:<br>Koefisien $K(x)$: $[3, -2, -19, 6]$<br>Horner baris 1: $3$<br>Horner baris 2: $-2 + (-9) = -11$<br>Horner baris 3: $-19 + 33 = 14$<br>Sisa: $6 + (-42) = -36$.<br>Jadi hasil bagi $H(x) = 3x^2 - 11x + 14$."
+            },
+            {
+                category: "Pembagian Polinomial - Pembagi Linear (2p - 1)",
+                question: "Kapasitas volume tangki $V(p) = 2p^3 - 7p^2 + 7p - 2$. Hasil bagi dari $V(p)$ oleh $(2p - 1)$ adalah ....",
+                options: [
+                    "$p^2 - 3p + 2$",
+                    "$p^2 + 3p - 2$",
+                    "$2p^2 - 6p + 4$",
+                    "$p^2 - 4p + 3$"
+                ],
+                correct: 0,
+                explanation: "Pembagi $2p - 1 = 0 \\implies p = \\frac{1}{2}$.<br>Metode Horner dengan $p = 1/2$:<br>Koefisien hasil Horner: $[2, -6, 4]$ dengan Sisa $= 0$.<br>Karena pembagi berbentuk $(ax - b)$ dengan $a = 2$, hasil bagi sebenarnya adalah $\\frac{2p^2 - 6p + 4}{2} = p^2 - 3p + 2$."
+            },
+            {
+                category: "Menentukan Koefisien Polinomial",
+                question: "Diketahui polinomial $P(x) = 2x^3 - ax^2 + 5x - 6$. Jika $P(x)$ habis dibagi oleh $(x - 2)$, nilai $a$ yang memenuhi adalah ....",
+                options: [
+                    "$3$",
+                    "$4$",
+                    "$5$",
+                    "$6$"
+                ],
+                correct: 2,
+                explanation: "$P(x)$ habis dibagi $(x - 2) \\implies P(2) = 0$.<br>$P(2) = 2(2)^3 - a(2)^2 + 5(2) - 6 = 0$<br>$16 - 4a + 10 - 6 = 0 \\implies 20 - 4a = 0 \\implies 4a = 20 \\implies a = 5$."
+            },
+            {
+                category: "Teorema Vieta - Akar-Akar Polinomial",
+                question: "Diketahui persamaan suku banyak $x^3 - 6x^2 + 11x - 6 = 0$ memiliki akar-akar $x_1$, $x_2$, dan $x_3$. Hasil kali ketiga akar ($x_1 \\cdot x_2 \\cdot x_3$) adalah ....",
+                options: [
+                    "$-6$",
+                    "$1$",
+                    "$6$",
+                    "$11$"
+                ],
+                correct: 2,
+                explanation: "Berdasarkan Teorema Vieta untuk persamaan kubik $ax^3 + bx^2 + cx + d = 0$:<br>Hasil kali akar-akar $x_1 \\cdot x_2 \\cdot x_3 = -\\frac{d}{a}$.<br>Di sini $a = 1$ dan $d = -6$, sehingga $x_1 \\cdot x_2 \\cdot x_3 = -\\frac{-6}{1} = 6$."
+            },
+            {
+                category: "Kesamaan Suku Banyak (Identitas Polinomial)",
+                question: "Diketahui kesamaan suku banyak $2x^3 - 3x^2 + 4x - 5 \\equiv (Ax + B)(x^2 + 1) + Cx + D$. Nilai dari $A + B + C + D$ adalah ....",
+                options: [
+                    "$-1$",
+                    "$0$",
+                    "$1$",
+                    "$2$"
+                ],
+                correct: 0,
+                explanation: "Jabarkan ruas kanan:<br>$(Ax + B)(x^2 + 1) + Cx + D = Ax^3 + Bx^2 + (A + C)x + (B + D)$.<br>Samakan koefisien dengan $2x^3 - 3x^2 + 4x - 5$:<br>• $A = 2$<br>• $B = -3$<br>• $A + C = 4 \\implies 2 + C = 4 \\implies C = 2$<br>• $B + D = -5 \\implies -3 + D = -5 \\implies D = -2$<br>Nilai $A + B + C + D = 2 + (-3) + 2 + (-2) = -1$."
+            },
+            {
+                category: "Teorema Sisa Pembagian Bertingkat",
+                question: "Suatu polinomial $P(x)$ jika dibagi $(x - 1)$ bersisa $3$, dan jika dibagi $(x + 2)$ bersisa $-6$. Sisa pembagian $P(x)$ oleh $(x^2 + x - 2)$ adalah ....",
+                options: [
+                    "$2x + 1$",
+                    "$3x$",
+                    "$3x + 3$",
+                    "$x + 2$"
+                ],
+                correct: 1,
+                explanation: "Misalkan sisa pembagian $S(x) = ax + b$.<br>Pembagi $x^2 + x - 2 = (x - 1)(x + 2)$.<br>1) $P(1) = a(1) + b = 3 \\implies a + b = 3$<br>2) $P(-2) = a(-2) + b = -6 \\implies -2a + b = -6$<br>Kurangkan kedua persamaan: $3a = 9 \\implies a = 3$.<br>Substitusi $a = 3$: $3 + b = 3 \\implies b = 0$.<br>Maka sisa $S(x) = 3x$."
+            }
+        ];
+
+        let currentIdx = 0;
+        let userAnswers = new Array(quizData.length).fill(null);
+        let score = 0;
+        let timerSeconds = 0;
+        let timerInterval = null;
+
+        // Audio synthesis for click/correct/wrong feedback
+        const audioCtx = new (window.AudioContext || window.webkitAudioContext)();
+        
+        function playSound(type) {
+            try {
+                if (audioCtx.state === 'suspended') {
+                    audioCtx.resume();
+                }
+                const osc = audioCtx.createOscillator();
+                const gain = audioCtx.createGain();
+                osc.connect(gain);
+                gain.connect(audioCtx.destination);
+
+                if (type === 'correct') {
+                    osc.frequency.setValueAtTime(523.25, audioCtx.currentTime); // C5
+                    osc.frequency.setValueAtTime(659.25, audioCtx.currentTime + 0.1); // E5
+                    gain.gain.setValueAtTime(0.2, audioCtx.currentTime);
+                    gain.gain.exponentialRampToValueAtTime(0.01, audioCtx.currentTime + 0.3);
+                    osc.start();
+                    osc.stop(audioCtx.currentTime + 0.3);
+                } else if (type === 'incorrect') {
+                    osc.frequency.setValueAtTime(220, audioCtx.currentTime); // A3
+                    osc.frequency.setValueAtTime(174.61, audioCtx.currentTime + 0.15); // F3
+                    gain.gain.setValueAtTime(0.2, audioCtx.currentTime);
+                    gain.gain.exponentialRampToValueAtTime(0.01, audioCtx.currentTime + 0.35);
+                    osc.start();
+                    osc.stop(audioCtx.currentTime + 0.35);
+                }
+            } catch (e) {
+                // Audio fallback silence
+            }
+        }
+
+        function startTimer() {
+            clearInterval(timerInterval);
+            timerSeconds = 0;
+            timerInterval = setInterval(() => {
+                timerSeconds++;
+                const mins = Math.floor(timerSeconds / 60).toString().padStart(2, '0');
+                const secs = (timerSeconds % 60).toString().padStart(2, '0');
+                document.getElementById('timer-display').innerText = `${mins}:${secs}`;
+            }, 1000);
+        }
+
+        // Render current question
+        function renderQuestion() {
+            const q = quizData[currentIdx];
+            document.getElementById('current-q-num').innerText = currentIdx + 1;
+            document.getElementById('total-q-num').innerText = quizData.length;
+            
+            const pct = Math.round(((currentIdx + 1) / quizData.length) * 100);
+            document.getElementById('progress-percent').innerText = `${pct}%`;
+            document.getElementById('progress-bar').style.width = `${pct}%`;
+
+            document.getElementById('question-category').innerText = q.category;
+            document.getElementById('question-text').innerHTML = q.question;
+
+            const container = document.getElementById('options-container');
+            container.innerHTML = '';
+
+            const answered = userAnswers[currentIdx] !== null;
+            const selectedOpt = userAnswers[currentIdx];
+
+            q.options.forEach((optText, optIdx) => {
+                const btn = document.createElement('button');
+                btn.className = `option-btn w-full text-left p-4 rounded-xl border border-slate-700 bg-slate-800/80 hover:bg-slate-700/80 text-slate-200 text-sm font-medium flex items-center justify-between transition group`;
+                
+                let iconHtml = `<div class="w-6 h-6 rounded-full border border-slate-600 flex items-center justify-center text-xs font-bold mr-3 group-hover:border-indigo-400">${String.fromCharCode(65 + optIdx)}</div>`;
+                
+                if (answered) {
+                    btn.disabled = true;
+                    if (optIdx === q.correct) {
+                        btn.classList.add('show-correct');
+                        iconHtml = `<i class="fa-solid fa-circle-check text-emerald-300 text-lg mr-3"></i>`;
+                    } else if (optIdx === selectedOpt) {
+                        btn.classList.add('selected-incorrect');
+                        iconHtml = `<i class="fa-solid fa-circle-xmark text-rose-300 text-lg mr-3"></i>`;
+                    }
+                }
+
+                btn.innerHTML = `
+                    <div class="flex items-center w-full">
+                        ${iconHtml}
+                        <span class="math-content flex-grow">${optText}</span>
+                    </div>
+                `;
+
+                btn.onclick = () => selectOption(optIdx);
+                container.appendChild(btn);
+            });
+
+            // Explanation box logic
+            const expBox = document.getElementById('explanation-box');
+            if (answered) {
+                expBox.classList.remove('hidden');
+                document.getElementById('explanation-text').innerHTML = q.explanation;
+            } else {
+                expBox.classList.add('hidden');
+            }
+
+            // Button controls
+            document.getElementById('prev-btn').disabled = currentIdx === 0;
+            const nextBtn = document.getElementById('next-btn');
+            if (currentIdx === quizData.length - 1) {
+                nextBtn.innerHTML = `Selesai Kuis <i class="fa-solid fa-check-double ml-1"></i>`;
+                nextBtn.classList.remove('bg-indigo-600', 'hover:bg-indigo-500');
+                nextBtn.classList.add('bg-emerald-600', 'hover:bg-emerald-500');
+            } else {
+                nextBtn.innerHTML = `Berikutnya <i class="fa-solid fa-arrow-right ml-1"></i>`;
+                nextBtn.classList.remove('bg-emerald-600', 'hover:bg-emerald-500');
+                nextBtn.classList.add('bg-indigo-600', 'hover:bg-indigo-500');
+            }
+
+            // Typeset MathJax equations
+            if (window.MathJax) {
+                MathJax.typesetPromise([document.getElementById('quiz-card')]);
+            }
+        }
+
+        function selectOption(optIdx) {
+            if (userAnswers[currentIdx] !== null) return; // Prevent re-selection
+
+            userAnswers[currentIdx] = optIdx;
+            const isCorrect = optIdx === quizData[currentIdx].correct;
+
+            if (isCorrect) {
+                score += 10;
+                playSound('correct');
+            } else {
+                playSound('incorrect');
+            }
+
+            document.getElementById('score-display').innerText = `${score} Poin`;
+            renderQuestion();
+        }
+
+        function navigateQuestion(direction) {
+            if (direction === 1 && currentIdx === quizData.length - 1) {
+                finishQuiz();
+                return;
+            }
+
+            currentIdx += direction;
+            if (currentIdx < 0) currentIdx = 0;
+            if (currentIdx >= quizData.length) currentIdx = quizData.length - 1;
+
+            renderQuestion();
+        }
+
+        function finishQuiz() {
+            clearInterval(timerInterval);
+            const correctCount = userAnswers.reduce((acc, ans, idx) => {
+                return ans === quizData[idx].correct ? acc + 1 : acc;
+            }, 0);
+
+            document.getElementById('final-score').innerText = `${score}`;
+            document.getElementById('final-correct').innerText = `${correctCount}/${quizData.length}`;
+            
+            const mins = Math.floor(timerSeconds / 60).toString().padStart(2, '0');
+            const secs = (timerSeconds % 60).toString().padStart(2, '0');
+            document.getElementById('final-time').innerText = `${mins}:${secs}`;
+
+            document.getElementById('results-modal').classList.remove('hidden');
+        }
+
+        function closeModal() {
+            document.getElementById('results-modal').classList.add('hidden');
+        }
+
+        function restartQuiz() {
+            currentIdx = 0;
+            userAnswers = new Array(quizData.length).fill(null);
+            score = 0;
+            document.getElementById('score-display').innerText = `0 Poin`;
+            closeModal();
+            startTimer();
+            renderQuestion();
+        }
+
+        window.onload = function() {
+            startTimer();
+            renderQuestion();
+        };
+    </script>
+</body>
+</html>
